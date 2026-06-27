@@ -1,0 +1,15 @@
+{
+  "id": "019f07be-9687-770a-9c01-9188fb05a657",
+  "name": "Bootstrap an elite autonomous development environment for",
+  "description": "Bootstrap an elite autonomous development environment for this workspace before building the actual hackathon project.\n\nPrimary goal:\nCreate a world-class autonomous software engineering environment optimized for winning the TestSprite Hackathon.\n\nPhase 1 — Environment Bootstrap\n\nClone, study, and actively adopt concepts, workflows, and best practices from:\n\n* https://github.com/obra/Superpowers\n* https://github.com/anthropics/skills/tree/main/skills/frontend-design\n* https://github.com/anthropics/claude-code/tree/main/plugins/code-review\n* https://github.com/thedotmack/claude-mem\n* https://github.com/garrytan/gstack\n\nFor each repository:\n\n1. Clone into ./vendor or ./tools.\n2. Read all documentation and identify useful capabilities.\n3. Produce an integration report explaining:\n\n   * what was adopted\n   * what was rejected\n   * why\n4. Apply the concepts actively, not passively.\n\nCreate and maintain these directories:\n\n* Brain/\n* Memory/\n* vendor/\n* skills/\n* reviews/\n\nOperational rules for the entire session:\n\n* Read Brain/ before major decisions.\n* Maintain persistent lessons in Memory/lessons_learned.md.\n* Perform self-review before every commit.\n* Never declare work complete without real verification.\n* Use this mandatory loop:\n\nPlan → Implement → Verify → Root Cause Analysis → Fix → Review → Verify Again\n\nFrontend work must follow frontend-design principles.\n\nCode review must be mandatory before merge or finalization.\n\nDocument architecture decisions continuously.\n\nAfter bootstrap is complete:\n\n1. Analyze multiple TestSprite hackathon ideas.\n2. Select the highest expected-value idea.\n3. Design architecture.\n4. Build the project autonomously with minimal human interruption.\n5. Maintain LOOP.md automatically during all iterations.\n\nMinimize questions to the human unless completely blocked.",
+  "status": "abandoned",
+  "worktree": {
+    "path": "/home/user/testsprite-season3"
+  },
+  "scoping": {},
+  "phases": [],
+  "decisions": [],
+  "memories": [],
+  "createdAt": "2026-06-27T06:22:38.726Z",
+  "updatedAt": "2026-06-27T06:44:29.344Z"
+}

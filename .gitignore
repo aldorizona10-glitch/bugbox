@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+bugbox/node_modules/
+vendor/*/node_modules/
+
+# Build artifacts
+.next/
+out/
+*.tsbuildinfo
+.vercel/
+
+# Env / secrets
+.env
+.env.local
+.env*.local
+.env.production
+
+# DB files
+*.db
+*.db-journal
+*.db-*
+
+# TestSprite local artifacts
+.testsprite/run/
+
+# OS / editor
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# Keep vendor repos (studied, tracked lightly) — but ignore their git internals
+!vendor/
+vendor/**/.git/

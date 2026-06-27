@@ -1,0 +1,48 @@
+# TestSprite CI/CD — gates PRs on real test verdicts.
+# +5 Innovation points (hackathon bonus) for wiring the checker into CI/CD.
+#
+# Required repo secrets (Settings → Secrets and variables → Actions):
+#   TESTSPRITE_API_KEY   — your TestSprite API key (testsprite auth configure)
+#   TESTSPRITE_PROJECT_ID — the project id for this repo
+#
+# Frontend tests: pass a test-id or use --all with a frontend filter.
+# This workflow runs all backend tests + any explicitly-listed frontend tests.
+name: TestSprite verify loop
+
+on:
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      TESTSPRITE_API_KEY: ${{ secrets.TESTSPRITE_API_KEY }}
+      PROJECT_ID: ${{ secrets.TESTSPRITE_PROJECT_ID }}
+      # The live deployed URL the CLI tests against.
+      TARGET_URL: ${{ vars.TESTSPRITE_TARGET_URL }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install TestSprite CLI
+        run: npm install -g @testsprite/testsprite-cli
+
+      - name: Preflight
+        run: |
+          testsprite --version
+          testsprite auth status
+
+      - name: Run all tests against the live URL
+        # --all runs the backend dependency closure (producers → consumers → teardowns).
+        # For frontend tests, trigger each by id (see testsprite-verify skill §4).
+        run: |
+          testsprite test run --all --project "$PROJECT_ID" \
+            --target-url "$TARGET_URL" --wait --timeout 600 --output json

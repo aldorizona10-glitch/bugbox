@@ -1,0 +1,10 @@
+node_modules/
+.next/
+out/
+.env.local
+.env*.local
+bugbox.db
+bugbox.db-journal
+bugbox.db-*
+*.tsbuildinfo
+.vercel/
