@@ -62,6 +62,13 @@ export async function GET(_request: Request, { params }: { params: { id: string 
   return NextResponse.json({ bug: bugRows[0], comments: commentRows });
 }
 
+// HTML forms can only send GET or POST, not PATCH. The bug detail page's
+// "Update status" form uses method=POST with a hidden _method=patch field.
+// This POST handler reads that field and delegates to the PATCH logic.
+export async function POST(request: Request, { params }: { params: { id: string } }) {
+  return PATCH(request, { params });
+}
+
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
   try { await requireUser(); } catch {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

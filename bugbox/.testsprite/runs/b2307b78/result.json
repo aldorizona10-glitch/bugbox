@@ -1,0 +1,20 @@
+{
+  "testId": "8f89bb51-07cb-41f4-95ae-e64e177fe37b",
+  "status": "blocked",
+  "startedAt": "2026-06-27T10:12:55.334Z",
+  "finishedAt": "2026-06-27T10:18:00.546Z",
+  "videoUrl": "https://testsprite-videos.s3.us-east-1.amazonaws.com/c4e8e488-3051-70bc-a296-59fe50121399/1782555480331986//tmp/5cb6194a-312d-472f-aa97-6a237b40b89f/result.webm",
+  "failureAnalysisUrl": null,
+  "snapshotId": "snap_c836b48e29c00072",
+  "runIdIfAvailable": "b2307b78-25cd-4f29-a08c-5bfbdcb6b001",
+  "codeVersion": "v1",
+  "targetUrl": "https://bugbox-eta.vercel.app",
+  "targetUrlSource": "run",
+  "failedStepIndex": 14,
+  "failureKind": null,
+  "summary": {
+    "passed": 0,
+    "failed": 0,
+    "skipped": 0
+  }
+}

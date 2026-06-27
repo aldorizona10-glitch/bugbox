@@ -1,0 +1,9 @@
+{
+  "rootCauseHypothesis": "TEST BLOCKED\n\nThe test cannot be run because authentication endpoints are returning invalid JSON responses, preventing access to the application.\n\nObservations:\n- Attempts to sign in with the provided demo credentials resulted in a raw API response: '{\"error\":\"Invalid JSON\"}' (login endpoint returned invalid JSON).\n- Attempt to register a new account produced the same raw API response ('{\"error\":\"Invalid JSON\"'), so account creation also failed.\n- The UI remains on the Sign in page (email/password fields and Sign in button visible with demo credentials shown), so the dashboard and bug list cannot be reached.\n\nBecause authentication cannot be completed, the required steps to filter for Closed bugs, open a closed bug, change its status to Open, and verify the reopened bug in the Open list cannot be performed. The test is blocked by backend/API behavior and cannot proceed.",
+  "recommendedFixTarget": {
+    "kind": "data",
+    "reference": null,
+    "rationale": null
+  },
+  "evidence": []
+}

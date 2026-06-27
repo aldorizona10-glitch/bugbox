@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "cli-v1",
+  "snapshotId": "snap_c836b48e29c00072",
+  "testId": "8f89bb51-07cb-41f4-95ae-e64e177fe37b",
+  "projectId": "c3182bac-a2ab-4ef1-a4ba-aa376cfcc6c6",
+  "codeVersion": "v1",
+  "runIdIfAvailable": "b2307b78-25cd-4f29-a08c-5bfbdcb6b001",
+  "targetUrl": "https://bugbox-eta.vercel.app",
+  "failedStepIndex": 14,
+  "failureKind": null,
+  "capturedAt": "2026-06-27T10:18:00.546Z",
+  "fetchedAt": "2026-06-27T11:44:03.997Z"
+}
