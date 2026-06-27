@@ -1,6 +1,9 @@
 import Link from 'next/link';
 import { getSession } from '@/lib/session';
 import { redirect } from 'next/navigation';
+import { db } from '@/lib/db';
+import { bugs, users } from '@/lib/schema';
+import { eq, desc, asc, like, and, sql } from 'drizzle-orm';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,21 +35,31 @@ export default async function DashboardPage({
   const q = searchParams.q ?? '';
   const sort = searchParams.sort ?? 'created';
 
-  const params = new URLSearchParams();
-  if (status && status !== 'all') params.set('status', status);
-  if (q.trim()) params.set('q', q.trim());
-  if (sort) params.set('sort', sort);
+  // Query DB directly (server component) — no HTTP fetch needed.
+  const conds = [];
+  if (status && status !== 'all') conds.push(eq(bugs.status, status as any));
+  if (q.trim()) conds.push(like(bugs.title, `%${q.trim()}%`));
 
-  const base = process.env.NEXT_PUBLIC_APP_URL ?? '';
-  const res = await fetch(`${base}/api/bugs?${params}`, {
-    headers: { cookie: '' },
-    cache: 'no-store',
-  });
-  // Note: server component fetch can't carry the browser cookie directly; the
-  // API route reads the session from cookies() which is forwarded by Next for
-  // same-origin RSC fetches. If this returns 401 in some envs, the client nav
-  // to /login handles it.
-  const data = res.ok ? await res.json() : { bugs: [] };
+  const order =
+    sort === 'updated' ? desc(bugs.updatedAt) :
+    sort === 'priority' ? asc(bugs.priority) :
+    desc(bugs.createdAt);
+
+  const rows = await db
+    .select({
+      id: bugs.id,
+      title: bugs.title,
+      status: bugs.status,
+      priority: bugs.priority,
+      createdAt: bugs.createdAt,
+      updatedAt: bugs.updatedAt,
+      createdBy: bugs.createdBy,
+      authorName: users.name,
+    })
+    .from(bugs)
+    .leftJoin(users, eq(bugs.createdBy, users.id))
+    .where(conds.length ? (conds.length === 1 ? conds[0] : and(...conds)) : undefined)
+    .orderBy(order);
 
   return (
     <div className="shell">
@@ -87,14 +100,14 @@ export default async function DashboardPage({
           <button type="submit" className="btn">Apply</button>
         </form>
 
-        {data.bugs.length === 0 ? (
+        {rows.length === 0 ? (
           <div className="empty">
             <div>No bugs match this filter.</div>
             <div className="hint">Try clearing the filter, or <Link href="/bugs/new">create a new bug</Link>.</div>
           </div>
         ) : (
           <ul className="buglist">
-            {data.bugs.map((b: any) => (
+            {rows.map((b) => (
               <li key={b.id}>
                 <div>
                   <div className="title">
