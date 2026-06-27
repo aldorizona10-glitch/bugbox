@@ -38,13 +38,26 @@ forwarded on serverless) to direct DB query.
 
 Commit: `aa7f516` — `fix: all API routes handle form-encoded POST (TestSprite RCA: 'Invalid JSON')`
 
-**Iteration 2 — re-verify after fix:**
+**Iteration 2 — re-verify after fix #1 (parseBody):**
 - Test 1 (register → login → create bug → see in list): **PASSED** (13/13 steps)
 - Test 2 (filter by status + search by title): **PASSED**
-- Test 3 (edit priority → add comment → close bug): running
-- Test 4 (reopen closed bug): pending rerun
+- Test 3 (edit priority → add comment → close bug): **PASSED**
+- Test 4 (reopen closed bug): **FAILED** (13/14 steps — step 14: reopened bug not in Open-filtered list)
 
-See [`LOOP.md`](./LOOP.md) for the full per-iteration log.
+**RCA #2 (from TestSprite step trace):**
+Test 4 caught a second bug: the bug detail page's "Update status" form uses `method="post"` (HTML forms can't send PATCH), but `/api/bugs/[id]` only exported a `PATCH` handler → 405 Method Not Allowed → the status never actually changed.
+
+**Fix #2:**
+Added a `POST` handler to `/api/bugs/[id]` that delegates to the `PATCH` logic. Both POST (HTML forms) and PATCH (API/fetch) now process updates.
+
+Commit: `f47322f` — `fix: add POST handler to /api/bugs/[id] — HTML forms can't send PATCH`
+
+**Iteration 3 — re-verify after fix #2:**
+- Test 4 (reopen closed bug): **PASSED** (15/15 steps)
+
+**Final result: 4/4 tests PASSED.**
+
+See [`LOOP.md`](./LOOP.md) for the full per-iteration log with two catch-and-fix stories.
 
 ## Stack
 
