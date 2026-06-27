@@ -6,6 +6,18 @@ import { requireUser } from '@/lib/session';
 
 export const dynamic = 'force-dynamic';
 
+async function parseBody(request: Request): Promise<Record<string, any>> {
+  const ct = request.headers.get('content-type') ?? '';
+  if (ct.includes('application/json')) {
+    try { return await request.json(); } catch { return {}; }
+  }
+  const text = await request.text();
+  const params = new URLSearchParams(text);
+  const obj: Record<string, any> = {};
+  for (const [k, v] of params.entries()) obj[k] = v;
+  return obj;
+}
+
 export async function GET(_request: Request, { params }: { params: { id: string } }) {
   try { await requireUser(); } catch {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -51,8 +63,7 @@ export async function GET(_request: Request, { params }: { params: { id: string 
 }
 
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
-  let user;
-  try { user = await requireUser(); } catch {
+  try { await requireUser(); } catch {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -61,10 +72,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
   }
 
-  let body: any;
-  try { body = await request.json(); } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
-  }
+  const body = await parseBody(request);
 
   const patch: Record<string, any> = {};
   if (typeof body?.title === 'string') {
@@ -80,12 +88,17 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 });
   }
 
-  const updated = await db.update(bugs).set(patch).where(eq(bugs.id, id)).returning();
-  if (updated.length === 0) {
-    return NextResponse.json({ error: 'Bug not found' }, { status: 404 });
+  try {
+    const updated = await db.update(bugs).set(patch).where(eq(bugs.id, id)).returning();
+    if (updated.length === 0) {
+      return NextResponse.json({ error: 'Bug not found' }, { status: 404 });
+    }
+    // Redirect back to the bug detail page after HTML form submit
+    return NextResponse.redirect(new URL(`/bugs/${id}`, request.url));
+  } catch (err) {
+    console.error('Update bug error:', err);
+    return NextResponse.json({ error: 'Failed to update bug' }, { status: 500 });
   }
-
-  return NextResponse.json({ bug: updated[0] });
 }
 
 export async function DELETE(_request: Request, { params }: { params: { id: string } }) {

@@ -1,4 +1,3 @@
 {
-  "projectId": null,
-  "_comment": "Set projectId to your TestSprite project id (from `testsprite project list`). Until set, the verify-loop cannot run against this repo."
+  "projectId": "c3182bac-a2ab-4ef1-a4ba-aa376cfcc6c6"
 }

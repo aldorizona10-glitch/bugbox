@@ -1,0 +1,5 @@
+{
+  "rootCauseHypothesis": "TEST BLOCKED\n\nThe registration flow cannot be completed because the server returns an API error when submitting the registration form.\n\nObservations:\n- Submitting the registration form returned the raw JSON response: {\"error\":\"Invalid JSON\"} instead of navigating to the dashboard.\n- Two separate registration attempts using different unique emails produced the same API error and displayed the API error JSON page.\n- The login page is reachable and displays demo credentials (demo@bugbox.dev / demo1234), but creating a new user via the UI is blocked by the server-side error.",
+  "recommendedFixTarget": null,
+  "evidence": []
+}

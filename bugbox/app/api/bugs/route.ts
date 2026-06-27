@@ -1,23 +1,34 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { bugs, users } from '@/lib/schema';
-import { eq, desc, asc, or, like, and, ne } from 'drizzle-orm';
+import { eq, desc, asc, like, and } from 'drizzle-orm';
 import { requireUser } from '@/lib/session';
 
 export const dynamic = 'force-dynamic';
 
+async function parseBody(request: Request): Promise<Record<string, any>> {
+  const ct = request.headers.get('content-type') ?? '';
+  if (ct.includes('application/json')) {
+    try { return await request.json(); } catch { return {}; }
+  }
+  const text = await request.text();
+  const params = new URLSearchParams(text);
+  const obj: Record<string, any> = {};
+  for (const [k, v] of params.entries()) obj[k] = v;
+  return obj;
+}
+
 export async function GET(request: Request) {
-  let user;
   try {
-    user = await requireUser();
+    await requireUser();
   } catch {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const { searchParams } = new URL(request.url);
-  const status = searchParams.get('status'); // open|in_progress|resolved|closed
-  const q = searchParams.get('q'); // title search
-  const sort = searchParams.get('sort'); // created|updated|priority
+  const status = searchParams.get('status');
+  const q = searchParams.get('q');
+  const sort = searchParams.get('sort');
 
   const conds = [];
   if (status && status !== 'all') conds.push(eq(bugs.status, status as any));
@@ -55,12 +66,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  let body: any;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
-  }
+  const body = await parseBody(request);
 
   const title = (body?.title ?? '').toString().trim();
   const description = (body?.description ?? '').toString().trim();
@@ -72,10 +78,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Title is required' }, { status: 400 });
   }
 
-  const [created] = await db
-    .insert(bugs)
-    .values({ title, description, priority, createdBy: user.id })
-    .returning();
+  try {
+    const [created] = await db
+      .insert(bugs)
+      .values({ title, description, priority, createdBy: user.id })
+      .returning();
 
-  return NextResponse.json({ bug: created }, { status: 201 });
+    // Redirect to the bug detail page after creating from the HTML form
+    return NextResponse.redirect(new URL(`/bugs/${created.id}`, request.url));
+  } catch (err) {
+    console.error('Create bug error:', err);
+    return NextResponse.json({ error: 'Failed to create bug' }, { status: 500 });
+  }
 }
