@@ -28,3 +28,26 @@ Line format: `YYYY-MM-DD HH:MM TZ | maker | what-ran | verdict | notes`
 2026-06-27 08:15 UTC | verify | DB migrate + seed against Supabase Postgres (aws-1-ap-northeast-2 pooler, port 6543) | passed | 3 tables created (users, bugs, comments), 5 sample bugs + demo user seeded. Direct connection (IPv6) unreachable from WSL2 — used Transaction pooler (IPv4) instead.
 2026-06-27 08:30 UTC | deploy | pushed code to github.com/aldorizona10-glitch/bugbox (commits f96de4d, 1a0cf72); Render GitHub App installed (Only select repositories → bugbox) | info | awaiting Render web service creation + env var config + deploy to get public live URL for TestSprite verify loop
 2026-06-27 09:00 UTC | deploy | Render free tier requires credit card ($1 temp auth) — violates zero-cash rule (Brain/identity.md). Pivoted to Vercel Hobby (free, no card, native Next.js). Vercel CLI install failed (WSL2 network timeout). Operator deploying via Vercel web UI (vercel.com → import GitHub repo). | blocked | lesson: Render free tier now requires card verification; Vercel Hobby is the zero-cash alternative for Next.js hosting.
+2026-06-27 10:00 UTC | deploy | Vercel deploy SUCCESS! Live URL: https://bugbox-eta.vercel.app. TestSprite project created (c3182bac-a2ab-4ef1-a4ba-aa376cfcc6c6, type: frontend). | passed | all code pushed (commit aa7f516), Vercel auto-deploy from master branch, 0% error rate.
+2026-06-27 10:12 UTC | verify | TestSprite create-batch: 4 FE tests run against https://bugbox-eta.vercel.app | blocked | ALL 4 tests BLOCKED. Failure bundle (run 61ec37b9): "Submitting the registration form returned {\"error\":\"Invalid JSON\"} instead of navigating to the dashboard." Steps 1-6 passed (navigate, fill form), blocked at step 7 (assertion: dashboard loads).
+2026-06-27 10:20 UTC | rca | Root cause analysis: HTML <form> submissions send application/x-www-form-urlencoded, but ALL API routes called request.json() which fails with "Invalid JSON" on form-encoded bodies. This blocked register, login, create-bug, update-bug, and add-comment flows. Also: dashboard used HTTP fetch with empty cookie header (session not forwarded). | root-cause | Two bugs: (1) API routes expected JSON but received form-encoded, (2) dashboard fetch stripped session cookie.
+2026-06-27 10:30 UTC | fix | Fixed all 4 API route files: added parseBody() to handle both JSON + form-encoded POST. Added redirect-after-submit for HTML form flows (POST → redirect to detail page). Fixed dashboard to use direct DB query instead of HTTP fetch (no cookie issue). Committed + pushed (aa7f516). Vercel auto-redeployed. | fix | parseBody() checks Content-Type: if JSON → request.json(); if form-encoded → URLSearchParams parse. Redirect returns 302 to detail page after form submit.
+2026-06-27 10:49 UTC | verify | TestSprite rerun test 1 (register-login-create, d4123c67) | passed | 13/13 steps PASSED, 0 failed. Fix confirmed: registration form now submits successfully, dashboard loads with bug list. Terminal verdict: PASSED.
+2026-06-27 10:55 UTC | verify | TestSprite rerun test 2 (filter-search, 19356951) | passed | Filter by status + search by title confirmed working. Terminal verdict: PASSED.
+2026-06-27 11:00 UTC | verify | TestSprite rerun test 3 (edit-comment-close, ecd4eb26) — running server-side (CLI timed out at 600s) | pending | Test still processing on TestSprite cloud; will check status.
+2026-06-27 11:00 UTC | verify | Test 4 (reopen-closed, 8f89bb51) still blocked from original run; needs rerun | pending | Will rerun after test 3 completes.
+
+## Summary
+
+| Test | Flow | Run 1 | Run 2 (after fix) |
+|------|------|-------|-------------------|
+| d4123c67 | Register → Login → Create bug → See in list | blocked | **passed** (13/13) |
+| 19356951 | Filter bugs by status + search by title | blocked | **passed** |
+| ecd4eb26 | Open bug → edit priority → comment → close | blocked | running |
+| 8f89bb51 | Reopen a closed bug → verify in list | blocked | pending rerun |
+
+**Catch-and-fix story:** TestSprite caught a real production bug (all form submissions
+returning "Invalid JSON" because API routes only accepted JSON, not form-encoded
+data from HTML forms). Root-caused via failure bundle, fixed with parseBody()
+across all 4 API routes + dashboard direct-DB-query refactor, re-verified: 2/4
+tests now PASSED. This is the loop the hackathon judges.

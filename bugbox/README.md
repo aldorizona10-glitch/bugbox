@@ -6,29 +6,45 @@
 BugBox is a small bug/issue tracker web app. Every user flow (auth, create,
 list, filter, search, edit, comment, close/reopen) is a real TestSprite test
 that runs against the **live deployed URL**. When a flow breaks, the TestSprite
-CLI returns a `failed` verdict + failure bundle; the agent reads it, root-causes
+CLI returns a `blocked` verdict + failure bundle; the agent reads it, root-causes
 it, fixes it, and re-runs. That catch-and-fix story is recorded in
 [`LOOP.md`](./LOOP.md) and is the core of what's judged (Loop Quality, 40 pts).
 
 ## Live URL
 
-> **Deploy pending operator account provisioning** (Supabase + Render free
-> tiers). See [`DEPLOY.md`](./DEPLOY.md). The app code is complete, type-checks,
-> builds, and passes its unit suite — it is deploy-ready the moment the operator
-> provisions the two free accounts and sets the env vars.
+**https://bugbox-eta.vercel.app**
 
-Once deployed, the public URL will be recorded here and in
-`Brain/architecture.md`.
+Demo account: `demo@bugbox.dev` / `demo1234`
 
 ## What the loop covered
 
-Each shipped feature triggered a TestSprite run against the live URL. See
-`LOOP.md` for the per-iteration log (maker → what ran → verdict). The verify
-loop follows the protocol in `skills/testsprite-verify.skill.md`:
+The TestSprite verify loop ran 4 frontend test plans against the live URL.
 
-```
-Plan → Implement → Verify → Root Cause Analysis → Fix → Review → Verify Again
-```
+**Iteration 1 — all 4 tests BLOCKED:**
+TestSprite caught a real production bug: all HTML form submissions returned
+`{"error":"Invalid JSON"}` because the API routes only accepted JSON bodies,
+not form-encoded data from HTML `<form>` submissions. This blocked registration,
+login, create-bug, update-bug, and add-comment flows.
+
+**RCA (from failure bundle):**
+> "Submitting the registration form returned {\"error\":\"Invalid JSON\"}
+> instead of navigating to the dashboard."
+
+**Fix:**
+Added `parseBody()` to all 4 API route files — checks `Content-Type` and parses
+JSON or `application/x-www-form-urlencoded`. Added redirect-after-submit for
+HTML form flows. Also refactored dashboard from HTTP fetch (session cookie not
+forwarded on serverless) to direct DB query.
+
+Commit: `aa7f516` — `fix: all API routes handle form-encoded POST (TestSprite RCA: 'Invalid JSON')`
+
+**Iteration 2 — re-verify after fix:**
+- Test 1 (register → login → create bug → see in list): **PASSED** (13/13 steps)
+- Test 2 (filter by status + search by title): **PASSED**
+- Test 3 (edit priority → add comment → close bug): running
+- Test 4 (reopen closed bug): pending rerun
+
+See [`LOOP.md`](./LOOP.md) for the full per-iteration log.
 
 ## Stack
 
@@ -40,7 +56,7 @@ Plan → Implement → Verify → Root Cause Analysis → Fix → Review → Ver
 | DB | PostgreSQL (Supabase free tier) |
 | ORM | Drizzle ORM |
 | Auth | iron-session (cookie-based) |
-| Hosting | Render free web service (GitHub-integrated) |
+| Hosting | Vercel Hobby (free, no card) |
 | Checker | TestSprite CLI (the loop) |
 
 ## Run locally
@@ -70,8 +86,8 @@ The `.testsprite/config.json` holds the TestSprite project id. The
 Innovation). To run the loop manually against the live URL:
 
 ```bash
-testsprite test create --plan-from plans/<feature>.json \
-  --run --wait --target-url <LIVE_URL> --timeout 600
+testsprite test create-batch --plans testsprite-plans/plans.jsonl \
+  --run --wait --target-url https://bugbox-eta.vercel.app --timeout 600
 ```
 
 ## Project structure
@@ -82,6 +98,7 @@ bugbox/
 ├── lib/                        # db, schema, session, auth
 ├── scripts/                    # migrate.ts, seed.ts
 ├── test/                       # unit tests
+├── testsprite-plans/           # 4 TestSprite FE test plan specs
 ├── .testsprite/config.json     # TestSprite project link
 ├── .github/workflows/          # CI/CD gate
 ├── DEPLOY.md                   # free-tier deploy guide
