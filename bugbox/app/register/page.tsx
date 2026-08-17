@@ -2,9 +2,19 @@ import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
 
-export default function RegisterPage() {
+export default function RegisterPage({
+  searchParams,
+}: {
+  searchParams?: { error?: string };
+}) {
+  const error = searchParams?.error;
   return (
     <div className="auth-shell">
+      {error && (
+        <p role="alert" className="auth-error">
+          {error}
+        </p>
+      )}
       <h2>Create a <span style={{ color: 'var(--accent)' }}>Bug</span>Box account</h2>
       <form action="/api/auth?action=register" method="post">
         <div className="field">
