@@ -2,9 +2,19 @@ import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
 
-export default function LoginPage() {
+export default function LoginPage({
+  searchParams,
+}: {
+  searchParams?: { error?: string };
+}) {
+  const error = searchParams?.error;
   return (
     <div className="auth-shell">
+      {error && (
+        <p role="alert" className="auth-error">
+          {error}
+        </p>
+      )}
       <h2>Sign in to <span style={{ color: 'var(--accent)' }}>Bug</span>Box</h2>
       <form action="/api/auth?action=login" method="post">
         <div className="field">

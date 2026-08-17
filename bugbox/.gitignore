@@ -8,3 +8,7 @@ bugbox.db-journal
 bugbox.db-*
 *.tsbuildinfo
 .vercel/
+
+# local build/test output
+.next/
+node_modules/
