@@ -26,6 +26,9 @@ const CONNECTION_CODES = new Set([
   '57P02', // crash_shutdown
   '57P03', // cannot_connect_now
   '53300', // too_many_connections
+  // Supabase's pooler answers XX000 (internal_error) when the project behind
+  // it is suspended or gone: the pooler is up, the database is not.
+  'XX000',
 ]);
 
 const CONNECTION_HINTS = [
@@ -48,6 +51,7 @@ export function isConnectionError(err: unknown): boolean {
 
 /** Message shown to a visitor when the demo database is not answering. */
 export const DB_ASLEEP_MESSAGE =
-  'The demo database is not responding right now, so sign-in is unavailable. ' +
-  'This deployment uses a free Postgres tier that suspends when idle. The code ' +
-  'and the rest of the app are unaffected.';
+  'The demo database is unavailable right now, so sign-in is disabled. This ' +
+  'deployment runs on a free Postgres tier that suspends after a period of ' +
+  'inactivity. Nothing is wrong with the application itself: browse the source ' +
+  'or check /api/health for the current database status.';
