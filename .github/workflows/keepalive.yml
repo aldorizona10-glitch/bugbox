@@ -1,0 +1,24 @@
+# Keep the free-tier Supabase database awake.
+# Supabase pauses free projects after ~7 days without activity; one light
+# request a day to /api/health (runs SELECT 1) is enough to keep it running.
+name: keep-alive
+
+on:
+  schedule:
+    - cron: "17 2 * * *" # daily, 02:17 UTC
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping health endpoint
+        run: |
+          for i in 1 2 3; do
+            code=$(curl -s -o /tmp/out.json -w "%{http_code}" https://bugbox-eta.vercel.app/api/health)
+            cat /tmp/out.json; echo
+            [ "$code" = "200" ] && exit 0
+            sleep 30
+          done
+          echo "Health check did not return 200"
+          exit 1
