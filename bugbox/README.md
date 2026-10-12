@@ -129,3 +129,4 @@ was built inside):
 - `skills/testsprite-verify.skill.md` — the authoritative verify-loop protocol
 - `reviews/` — mandatory self-review records
 - `LOOP.md` — the agent-written loop log (judges read this first)
+
